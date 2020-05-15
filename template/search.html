@@ -1,0 +1,248 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="keywords" content="jquery,ui,easy,easyui,web">
+    <meta name="description" content="easyui help you build your web page easily!">
+    <meta name = "viewport" content = "initial-scale = 1, user-scalable = no">
+
+    <title>搜索</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/icon.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/demo.css">
+    <link href="/static/bootstrap/css/bootstrap.min.css"rel="stylesheet">
+    <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="/static/css/main.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+    <script src="../static/js/Chart.bundle.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            $(document).keydown(function (e) {
+                var event = document.all ? window.event : e;
+                if (event.keyCode === 13) {
+                    $("#btn-search").click();
+                }
+            });
+            //点击button按钮处理
+            $("#btn-search").on('click', function () {
+                var keyWork = $("#key").val();
+                if (keyWork === ""){
+                    alert("商品名称不可为空");
+                    return
+                }
+
+                var html = '';
+                var element=document.getElementById("show");
+                element.innerHTML="显示："+keyWork+"的搜索内容";
+                $.ajax({
+                    url:'/goods/search?search=' + keyWork,
+                    type:'get',
+                    dataType:'json',
+                    success:function (data) {
+                        for(var i=0;i<data.result.length;i++){
+                            var item = data.result[i];
+                            //1天猫 2京东 3亚马逊
+                            var source="天猫";
+                            if(item.Eid === 2){
+                                source = "京东";
+                            }else if(item.Eid === 3){
+                                source = "亚马逊";
+                            }
+                            html += `<div class="search-item">
+                                    <div class="title">
+                                    <span class="label mark-doc">商品</span>
+                                    <a href="` + item.Url + `" title="" target="_blank">` + item.Title + `</a>
+                                    </div>
+                                    <div class="description">
+                                    </div>
+                                    <div class="source">
+                            <img src="`+item.PhotoUrl+`" style="width: 10%;height: 15%"/>
+                            <span class="item">商品来源：<a href="` + item.Url + `" target="_blank"> ` + source + `</a></span>
+                            <span class="item">销量：`+ item.OrderCount+ `</span>
+                            <span class="item">价格：`+ item.Price+ `</span>
+                            <span class="item"><button id="`+item.Eid+item.GoodID +`" class="history-show" onclick="history_show()">查看历史价格</button> </span>
+                            </div>
+                            </div>`;
+                        }
+                        $('.manual-list').html(html);
+                    },error:function (data) {
+                        html = '<div class="no-goods">暂时无法找到此选项~</div>';
+                        $('.manual-list').html(html);
+                    }
+                })
+            });
+        });
+
+        function history_show(){
+            goods_id = event.target.id;
+            $.ajax({
+                type: "POST",//请求方式为POST
+                url: '/goods/price_history',//检验url
+                data: {id:goods_id},//请求数据
+                dataType:'json',//数据类型为JSON类型
+                cache: false,//关闭缓存
+                success: function(res){//响应成功
+                    console.log(res.result);
+                    if (res.code !== 200) {
+                        console.log("err appear,code = " + res.message);
+                    } else {
+
+                        var row = [];
+                        var column = [];
+
+                        t = res.result.length-1;
+                        for(var i=0;i<res.result.length;i++){
+                            if(i === res.result.length-1){
+                                row[i] = "今天";
+                            }else{
+                                row[i] = t + "天前";
+                                t--;
+                            }
+                            column[i] = parseInt(res.result[i].Price);
+                        }
+
+                        var lineChartData = {
+                            labels : row,
+                            datasets : [
+                                {
+                                    fillColor : "rgba(151,187,205,0.5)",
+                                    strokeColor : "rgba(151,187,205,1)",
+                                    pointColor : "rgba(151,187,205,1)",
+                                    pointStrokeColor : "#fff",
+                                    data: column
+                                }
+                            ]
+
+                        }
+                        var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Line(lineChartData);
+                    }
+                },error:function () {
+                    console.log("err appear");
+                 }
+            });
+        }
+
+        function show_photo(data) {
+            var row = [];
+            var column = [];
+
+            t = data.length-1;
+            for(var i=0;i<data.length;i++){
+                if(i === data.length-1){
+                    row[i] = "今天";
+                }else{
+                    row[i] = t + "天前";
+                    t--;
+                }
+                column[i] = parseInt(data[i].Price);
+            }
+
+            var lineChartData = {
+                labels : row,
+                datasets : [
+                    // {
+                    //     fillColor: "rgba(220,220,220,0.5)",
+                    //     strokeColor: "rgba(220,220,220,1)",
+                    //     pointColor: "rgba(220,220,220,1)",
+                    //     pointStrokeColor: "#fff",
+                    //     data: [100,90,80,60,120,90,80,70,60,115,100,90,50,100,90,80,70,50,140,130]
+                    // },
+                    {
+                        fillColor : "rgba(151,187,205,0.5)",
+                        strokeColor : "rgba(151,187,205,1)",
+                        pointColor : "rgba(151,187,205,1)",
+                        pointStrokeColor : "#fff",
+                        data : [28,48,40,19,96,27,100]
+                    }
+                ]
+
+            }
+            var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Line(lineChartData);
+        }
+
+    </script>
+    <style type="text/css">
+        .searcher {
+            background: rgba(255, 255, 255, 0);
+            position: fixed;
+            z-index: 999;
+            width: 100%;
+            height: 6rem;
+            text-align: center;
+            font-size: 1.6rem;
+        }
+
+        .searcher-main {
+            background: #F4F4F4;
+            position: absolute;
+            left: 50%;
+            top: 1.2rem;
+            margin-left: -45%;
+            border-radius: 1.6rem;
+            width: 80%;
+            height: 3rem;
+            line-height: 3rem;
+        }
+
+        .searcher-text {
+            width: 80%;
+            text-align: center;
+            border: none;
+            outline: none;
+            background: #F4F4F4;
+        }
+
+        .searcher-cancel {
+            position: absolute;
+            width: 10%;
+            height: 3rem;
+            line-height: 3rem;
+            color: #929292;
+            top: 1.2rem;
+            right: 1rem;
+        }
+    </style>
+
+</head>
+<body>
+
+
+    <div class="searcher">
+        <p class="searcher-main">
+            <button type="button" id="btn-search" class="btn btn-success" style="width: 5%; display: inline-block;float: right">搜索</button>
+            <input class="searcher-text" id="key" placeholder="请输入商品名称">
+        </p>
+    </div>
+
+
+    <div class="manual-reader manual-container manual-search-reader">
+        <div class="container manual-body">
+            <div class="search-head">
+                <strong class="search-title" id="show">比价搜索</strong>
+            </div>
+            <div class="row">
+                <div class="manual-list">
+                </div>
+            </div>
+
+            <div class="photo-show">
+                <canvas id="canvas" height="450" width="600"></canvas>
+
+                <div style="text-align:center;clear:both;">
+                    <script src="../static/js/gg_ba.js" type="text/javascript"></script>
+                    <script src="../static/js/follow.js" type="text/javascript"></script>
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+    </div>
+    <script src="/static/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+
+</body>
+</html>

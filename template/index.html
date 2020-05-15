@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/jquery.min.js">
+    </script>
+    <script>
+        $(document).ready(function(){
+            //点击button按钮处理
+            $("#button").click(function(){
+
+                var keyWork = $("#key").val();
+                $.ajax({
+                    url:'/goods/search?search=' + keyWork,
+                    type:'get',
+                    dataType:'json',
+                    success:function (data) {
+                        for(var i=0;i<data.result.length;i++){
+                            var item = data.result[i];
+                            var s = "<tr><td>" + item.Title + "</td><td>" +
+                                    item.Price +"</td><td>" + item.OrderCount+ "</td><td>"+ item.Url+ "</td></tr>";
+                            $("#t ab").append(s);
+                        }
+                    }
+                })
+            });
+        });
+
+    </script>
+</head>
+<body>
+
+<div class="site-search">
+    <div id="search">
+        <input type="text" id="key" class="text" placeholder="输入关键字搜索" />
+        <button type="button" id="button">搜索</button>
+
+    </div>
+</div>
+
+
+<table border="1" id="tab">
+    <tr>
+        <th>商品名称</th>
+        <th>价格</th>
+        <th>月销量</th>
+        <th>链接</th>
+    </tr>
+
+</table>
+
+</body>
+</html>

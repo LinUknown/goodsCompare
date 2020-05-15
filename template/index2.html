@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>搜索 - Powered by MinDoc</title>
+    <meta name="keywords" content="MinDoc,文档在线管理系统,WIKI,wiki,wiki在线,文档在线管理,接口文档在线管理,接口文档管理,{{.Keyword}}">
+    <meta name="description" content="MinDoc文档在线管理系统 {{.site_description}}">
+    <!-- Bootstrap -->
+    <link href="/static/bootstrap/css/bootstrap.min.css"rel="stylesheet">
+    <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="/static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<div class="manual-reader manual-container manual-search-reader">
+    <div class="container manual-body">
+        <div class="search-head">
+            <strong class="search-title">显示"{{.Keyword}}"的搜索结果</strong>
+        </div>
+        <div class="row">
+            <div class="manual-list">
+
+                <div class="search-item">
+                    <div class="title">
+                    <span class="label mark-doc">文档</span>
+                    <a href="" title="" target="_blank">$item.DocumentName</a>
+                    </div>
+                    <div class="description">
+                    </div>
+                    <div class="source">
+                        <span class="item">来自项目：<a href="" target="_blank">$item.BookName</a></span>
+
+                        <span class="item">更新时间："2006-01-02 15:04:05"</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/jquery/1.12.4/jquery.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+</body>
+</html>
