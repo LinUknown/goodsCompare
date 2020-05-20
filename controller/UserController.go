@@ -8,6 +8,7 @@ import (
 	"imooc.com/util"
 	"log"
 	"net/http"
+	"time"
 )
 
 func init()  {
@@ -97,10 +98,12 @@ func Login(c *gin.Context) {
 		return
 	}
 	token := util.GetToken(userName)
+	log.Printf("login success,ins cookie = %v",token)
 	c.SetCookie("token", token, 3600, "/", "localhost", http.SameSiteLaxMode, false,true)
-
-	datasource.GetRedis().Set(token,"2333",60*5)
-
+	err = datasource.GetRedis().Set(token,"2333",10*time.Minute).Err()
+	if err != nil {
+		panic(err)
+	}
 	log.Printf("user:%v,login",u.Name)
 	c.JSON(http.StatusOK, gin.H{
 		"result":"success",

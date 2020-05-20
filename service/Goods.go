@@ -11,6 +11,7 @@ import (
 	"imooc.com/util"
 	"sort"
 	"strconv"
+	"time"
 )
 
 func CompareGoods(goods model.GoodSlice,num int)(resGoods []model.Goods){
@@ -20,7 +21,7 @@ func CompareGoods(goods model.GoodSlice,num int)(resGoods []model.Goods){
 
 func SaveGoods(goods []model.Goods)(error){
 	for _,g := range goods{
-		datasource.GetRedis().Set(util.GetGoodPrex(g.GoodID,g.Eid),"2333",3600*12)
+		datasource.GetRedis().Set(util.GetGoodPrex(g.GoodID,g.Eid),"2333",24*time.Hour)
 	}
 	return model.Save(goods)
 }
@@ -45,4 +46,41 @@ func GetPhoto(goods[] model.Goods)string{
 	p.Save(8*vg.Inch, 4*vg.Inch, fileName)
 
 	return fileName
+}
+
+const ZSET_KEY = "GOODS_LIKE"
+
+func Like(id string)error  {
+	newScore, err := datasource.GetRedis().ZIncrBy(ZSET_KEY, 10, id).Result()
+	if err != nil {
+		fmt.Printf("zincrby failed, err:%v\n", err)
+		return err
+	}
+	fmt.Printf("Golang's score is %f now.\n", newScore)
+	return nil
+}
+
+func GetTop()([]model.Goods,[]float64,error){
+	// 取分数最高的3个
+	ret, err := datasource.GetRedis().ZRevRangeWithScores(ZSET_KEY, 0, 10).Result()
+	if err != nil {
+		fmt.Printf("zrevrange failed, err:%v\n", err)
+		return nil,nil,err
+	}
+	scores := make([]float64,0)
+	goods := make([]model.Goods,0)
+	for _, z := range ret {
+		id := fmt.Sprintf("%v",z.Member)
+		eID,_ := strconv.Atoi(id[0:1])
+		gID,_ :=strconv.ParseInt(id[1:], 10, 64)
+		//fmt.Printf("i get %v %v %v\n", id,eID,gID)
+		good,err:= model.GetGoodsByIDAndPID(gID,eID)
+		if err != nil || len(good) == 0{
+			continue
+		}
+		scores = append(scores, z.Score)
+		goods = append(goods, good[0])
+	}
+	return goods,scores,nil
+
 }

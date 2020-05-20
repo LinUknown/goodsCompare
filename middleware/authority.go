@@ -4,7 +4,9 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"imooc.com/datasource"
+	"log"
 	"net/http"
 )
 const (
@@ -23,12 +25,17 @@ func Authorize() gin.HandlerFunc{
 		return
 		token,err := c.Request.Cookie("token")
 		if err == nil{
-			datasource.GetRedis().Get(token.Value)
-			c.Next()
-		}else{
-			c.Abort()
-			c.HTML(http.StatusUnauthorized, "401.html", nil)
-			// return可省略, 只要前面执行Abort()就可以让后面的handler函数不再执行
+			redisToken, err := datasource.GetRedis().Get(token.Value).Result()
+			log.Printf("get token = %v",redisToken)
+			if err != redis.Nil {
+				c.Next()
+				return
+			} else if err != nil{
+				panic(err)
+			}
 		}
+		c.Abort()
+		c.HTML(http.StatusUnauthorized, "401.html", nil)
+		// return可省略, 只要前面执行Abort()就可以让后面的handler函数不再执行
 	}
 }

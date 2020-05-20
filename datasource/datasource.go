@@ -14,7 +14,7 @@ func GetDB() *gorm.DB{
 
 func init(){
 	//path := strings.Join([]string{config.Sysconfig.DBUserName, ":", config.Sysconfig.DBPassword, "@(", config.Sysconfig.DBIp, ":", config.Sysconfig.DBPort, ")/", config.Sysconfig.DBName, "?charset=utf8&parseTime=true"}, "")
-	path := "root:710069741@(23.238.49.110:3306)/bs?charset=utf8&parseTime=true"
+	path := "root:710069741@(47.112.216.17:3306)/bs?charset=utf8&parseTime=true"
 	var err error
 	db,err = gorm.Open("mysql",path)
 	if err != nil{

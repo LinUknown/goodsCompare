@@ -2,12 +2,14 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"imooc.com/crawler"
 	"imooc.com/datasource"
 	"imooc.com/model"
 	"imooc.com/service"
 	"imooc.com/util"
 	"net/http"
+	"strconv"
 )
 
 // localhost:9090/user/query?id=2&name=hello
@@ -21,12 +23,13 @@ func Search(c *gin.Context) {
 		resGood := make([]model.Goods,0)
 		for _,g := range goods{
 			_,err := datasource.GetRedis().Get(util.GetGoodPrex(g.GoodID,g.Eid)).Result()
-			if err != nil{
-				//redis内不存在
+			if err == redis.Nil {
 				resGood = append(resGood, g)
+			} else if err != nil {
+				panic(err)
 			}
 		}
-		//service.SaveGoods(resGood)
+		service.SaveGoods(resGood)
 	}()
 	c.JSON(http.StatusOK,gin.H{
 		"result":goods,
@@ -36,13 +39,10 @@ func Search(c *gin.Context) {
 //get 请求，获取历史价格
 func PriceHistory(c *gin.Context) {
 
-	//id := c.PostForm("id")
-	//
-	//eID,_ := strconv.Atoi(id[0:1])
-	//gID,_ :=strconv.ParseInt(id[1:], 10, 64)
-
-	eID := 1
-	gID := 111
+	eid := c.Query("eid")
+	gid := c.Query("gid")
+	eID,_ := strconv.Atoi(eid)
+	gID,_ :=strconv.ParseInt(gid, 10, 64)
 
 
 	goods,err:= model.GetGoodsByIDAndPID(int64(gID),eID)
@@ -54,7 +54,6 @@ func PriceHistory(c *gin.Context) {
 		})
 		return
 	}
-
 	if goods==nil || len(goods) == 0{
 		c.JSON(http.StatusOK, gin.H{
 			"message":"get data fail",
@@ -62,12 +61,46 @@ func PriceHistory(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK,gin.H{
 		"code": 200,
 		"result":goods,
 	})
 	return
+}
 
+//get 请求，获取历史价格
+func Like(c *gin.Context) {
 
+	eid := c.Query("eid")
+	gid := c.Query("gid")
+
+	id := eid+gid
+	err := service.Like(id)
+	if err != nil{
+		c.JSON(http.StatusOK, gin.H{
+			"message":"sys fail",
+			"code": 500,
+		})
+		return
+	}
+	c.JSON(http.StatusOK,gin.H{
+		"code": 200,
+	})
+	return
+}
+
+func GetTop(c *gin.Context){
+	goods,scores,err := service.GetTop()
+	if err != nil{
+		c.JSON(http.StatusOK, gin.H{
+			"message":"sys fail",
+			"code": 500,
+		})
+		return
+	}
+	c.JSON(http.StatusOK,gin.H{
+		"code": 200,
+		"goods":goods,
+		"scores":scores,
+	})
 }

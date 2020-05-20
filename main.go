@@ -50,7 +50,9 @@ func main()  {
 			})
 		})
 		goods.GET("/search",controller.Search)
-		goods.POST("/price_history",controller.PriceHistory)
+		goods.GET("/price_history",controller.PriceHistory)
+		goods.GET("/like",controller.Like)
+		goods.GET("/top",controller.GetTop)
 	}
 
 	// 指定地址和端口号
